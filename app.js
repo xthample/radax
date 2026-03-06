@@ -24,39 +24,50 @@ document.body.appendChild(div)
 
 async function connectWallet(){
 
-  // Check for Aptos Wallet Standard (window.aptos) - modern wallets
+  // Check for Aptos Wallet Standard - must have connect method
   const apt = window.aptos
   
-  // Fallback: Check for legacy Petra (deprecated but still works for now)
+  // Check for legacy Petra 
   const petra = window.petra
+
+  // Debug what's available
+  console.log("window.aptos:", apt)
+  console.log("window.petra:", petra)
 
   if(!apt && !petra){
     alert("Aptos wallet not detected. Please install Petra or another Aptos wallet.")
     return
   }
 
-  try{
-    
-    // Try the wallet standard first
-    if(apt){
+  // Use Wallet Standard if available and has connect method
+  if(apt && typeof apt.connect === 'function'){
+    try{
       const response = await apt.connect()
       account = response.address
       alert("Connected: " + account)
-    } 
-    // Fallback to legacy Petra (will show deprecation warning but works)
-    else if(petra){
-      console.warn("Using deprecated Petra API. Please update your wallet.")
+      return
+    }catch(e){
+      console.log("Wallet Standard connect failed:", e)
+      // Continue to fallback
+    }
+  }
+
+  // Fallback to legacy Petra (deprecated but may still work)
+  if(petra && typeof petra.connect === 'function'){
+    try{
+      console.warn("Falling back to deprecated Petra API")
       const response = await petra.connect()
       account = response.address
       alert("Connected: " + account)
+      return
+    }catch(e){
+      console.log(e)
+      alert("Connection rejected or cancelled")
+      return
     }
-
-  }catch(e){
-
-    console.log(e)
-    alert("Connection rejected or cancelled")
-
   }
+
+  alert("Wallet found but doesn't support connection. Please update your wallet.")
 
 }
 
