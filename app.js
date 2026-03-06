@@ -1,4 +1,4 @@
-// Using Aptos Wallet Adapter - https://aptos.dev/build/sdks/wallet-adapter/dapp
+// Using Aptos Wallet Standard - https://aptos.dev/build/sdks/wallet-adapter/dapp
 
 let account = null
 
@@ -24,25 +24,32 @@ document.body.appendChild(div)
 
 async function connectWallet(){
 
-  // Check if WalletSelector is available (exposed by wallet-adapter-core)
-  if(typeof window.WalletSelector === 'undefined'){
-    alert("Wallet adapter not loaded. Please refresh the page.")
+  // Check for Aptos Wallet Standard (window.aptos) - modern wallets
+  const apt = window.aptos
+  
+  // Fallback: Check for legacy Petra (deprecated but still works for now)
+  const petra = window.petra
+
+  if(!apt && !petra){
+    alert("Aptos wallet not detected. Please install Petra or another Aptos wallet.")
     return
   }
 
   try{
     
-    // Initialize the wallet selector with the Petra plugin
-    const walletSelector = await window.WalletSelector.init({
-      network: window.WalletAdapterNetwork.Testnet,
-      plugins: [new window.PetraWalletPlugin()]
-    })
-    
-    // Connect to a wallet
-    const { wallet } = await walletSelector.connect()
-    account = wallet.address
-    
-    alert("Connected: " + account)
+    // Try the wallet standard first
+    if(apt){
+      const response = await apt.connect()
+      account = response.address
+      alert("Connected: " + account)
+    } 
+    // Fallback to legacy Petra (will show deprecation warning but works)
+    else if(petra){
+      console.warn("Using deprecated Petra API. Please update your wallet.")
+      const response = await petra.connect()
+      account = response.address
+      alert("Connected: " + account)
+    }
 
   }catch(e){
 
