@@ -1,6 +1,10 @@
-let account = null
+// Using Aptos Wallet Standard - https://aptos.dev/build/sdks/wallet-adapter/dapp
+// The wallet-adapter-core exposes WalletAdapterNetwork and WalletSelector globally
 
-function loadNotes(){
+let account = null
+let walletSelector = null
+
+async function loadNotes(){
 
 const saved = localStorage.getItem("radax_notes")
 
@@ -22,25 +26,29 @@ document.body.appendChild(div)
 
 async function connectWallet(){
 
-const provider = window.aptos || window.petra
+  // Use the Aptos Wallet Standard (window.aptos)
+  // This is the supported way per https://aptos.dev/build/sdks/wallet-adapter/dapp
+  const provider = window.aptos
 
-if(!provider){
-alert("Aptos wallet not detected")
-return
-}
+  if(!provider){
+    alert("Aptos wallet not detected. Please install a compatible wallet like Petra.")
+    return
+  }
 
-try{
+  try{
 
-const response = await provider.connect()
+    // Request connection using the Wallet Standard API
+    const response = await provider.connect()
+    account = response.address
+    
+    alert("Connected: " + account)
 
-alert("Connected: " + response.address)
+  }catch(e){
 
-}catch(e){
+    console.log(e)
+    alert("Connection rejected")
 
-console.log(e)
-alert("Connection rejected")
-
-}
+  }
 
 }
 
